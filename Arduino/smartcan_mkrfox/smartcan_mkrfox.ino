@@ -1,22 +1,81 @@
-// Preliminary pass at getting GP2Y0E03 working.
 #include <Wire.h>
+#include <SigFox.h>
+#include <ArduinoLowPower.h>
+
+#define DEBUG 1
 
 #define SENSOR_ADRS 0x40 // I2C address of GP2Y0E03 
 #define DISTANCE_ADRS 0x5E // Data address of Distance Value // Functions to process only at power-on and reset 
 
 int ans ;
 byte c[2];
-
 int rouge = 4;
 int jaune = 5;
+bool warnAlarmSent = false;
+bool fullAlarmSent = false;
+
+/*
+    ATTENTION - the structure we are going to send MUST
+    be declared "packed" otherwise we'll get padding mismatch
+    on the sent data - see http://www.catb.org/esr/structure-packing/#_structure_alignment_and_padding
+    for more details
+*/
+typedef struct __attribute__ ((packed)) sigfox_message {
+  uint8_t status;
+  uint8_t alarmState;
+} SigfoxMessage;
+
+// stub for message which will be sent
+SigfoxMessage msg;
 
 void setup () {
   // Initialize serial communication
   Wire.begin(); // Initialize I2C,
-  delay(1000); // start after 1 second
+
   Serial.begin(9600);
+  while (!Serial) {};
+
+  delay(1000); // start after 1 second
   pinMode(rouge, OUTPUT);
   pinMode(jaune, OUTPUT);
+  //
+  if (!SigFox.begin()) {
+    if (DEBUG) {
+      Serial.println("Shield error or not present!");
+    }
+    return;
+  }
+  /*String version = SigFox.SigVersion();
+    String ID = SigFox.ID();
+    String PAC = SigFox.PAC();
+
+    // Display module informations
+    Serial.println("MKRFox1200 Sigfox first configuration");
+    Serial.println("SigFox FW version " + version);
+    Serial.println("ID  = " + ID);
+    Serial.println("PAC = " + PAC);
+    Serial.println("");*/
+  // Send the module to the deepest sleep
+  SigFox.end();
+}
+
+void sendMessage() {
+  // Start the module
+  SigFox.begin();
+  // Wait at least 30ms after first configuration (100ms before)
+  delay(100);
+  // Clears all pending interrupts
+  SigFox.status();
+  delay(1);
+  SigFox.beginPacket();
+  SigFox.write((uint8_t*)&msg, 2);
+  int ret = SigFox.endPacket();
+  if (DEBUG) {
+    Serial.print("Status : ");
+    Serial.println(ret);
+  }
+  // Send the module to the deepest sleep
+  SigFox.end();
 }
 
 void loop () {
@@ -36,25 +95,44 @@ void loop () {
 
     // if == 255 => mesure fausse (trop près ou trop loin)
     if (c[0] != 255) {
-      Serial.print(ans);
-      Serial.println ("cm"); //to display on serial monitor;
-      Serial.println ("");
+      if (DEBUG) {
+        Serial.print(ans);
+        Serial.println ("cm");
+      }
       if (ans < 50 && ans > 15) {
         digitalWrite(jaune, HIGH);
         digitalWrite(rouge, LOW);
+        if (!warnAlarmSent) {
+          msg.alarmState = 1;
+          warnAlarmSent = true;
+          sendMessage();
+        }
       } else if (ans < 15) {
         digitalWrite(rouge, HIGH);
         digitalWrite(jaune, LOW);
+        if (!fullAlarmSent) {
+          msg.alarmState = 2;
+          fullAlarmSent = true;
+          sendMessage();
+        }
       } else {
-        digitalWrite(rouge, LOW);
-        digitalWrite(jaune, LOW);
+        blankState();
       }
     } else {
-      digitalWrite(rouge, LOW);
-      digitalWrite(jaune, LOW);
+      blankState();
     }
   } else {
-    Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
-    Serial.println (ans);
+    if (DEBUG) {
+      Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
+      Serial.println (ans);
+    }
   }
 }
+
+void blankState() {
+  digitalWrite(rouge, LOW);
+  digitalWrite(jaune, LOW);
+  fullAlarmSent = false;
+  warnAlarmSent = false;
+}
+
