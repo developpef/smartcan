@@ -23,6 +23,11 @@ bool fullAlarmSent = false;
 typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t status;
   uint8_t alarmState;
+  uint16_t unused1;
+  uint16_t unused2;
+  uint16_t unused3;
+  uint16_t unused4;
+  uint16_t unused5;
 } SigfoxMessage;
 
 // stub for message which will be sent
@@ -32,8 +37,8 @@ void setup () {
   // Initialize serial communication
   Wire.begin(); // Initialize I2C,
 
-  Serial.begin(9600);
-  while (!Serial) {};
+  //Serial.begin(9600);
+  //while (!Serial) {};
 
   delay(1000); // start after 1 second
   pinMode(rouge, OUTPUT);
@@ -41,7 +46,7 @@ void setup () {
   //
   if (!SigFox.begin()) {
     if (DEBUG) {
-      Serial.println("Shield error or not present!");
+      //Serial.println("Shield error or not present!");
     }
     return;
   }
@@ -60,6 +65,8 @@ void setup () {
 }
 
 void sendMessage() {
+  //Serial.println("Sending message...");
+  
   // Start the module
   SigFox.begin();
   // Wait at least 30ms after first configuration (100ms before)
@@ -68,14 +75,18 @@ void sendMessage() {
   SigFox.status();
   delay(1);
   SigFox.beginPacket();
-  SigFox.write((uint8_t*)&msg, 2);
+  SigFox.write((uint8_t*)&msg, 12);
   int ret = SigFox.endPacket();
-  if (DEBUG) {
-    Serial.print("Status : ");
-    Serial.println(ret);
-  }
+
   // Send the module to the deepest sleep
   SigFox.end();
+  delay(100);
+
+  /*Serial.begin(9600);
+  while (!Serial) {};
+  Serial.print("Status : ");
+  Serial.println(ret);
+  Serial.print("Sent message.");*/
 }
 
 void loop () {
@@ -95,10 +106,9 @@ void loop () {
 
     // if == 255 => mesure fausse (trop près ou trop loin)
     if (c[0] != 255) {
-      if (DEBUG) {
-        Serial.print(ans);
-        Serial.println ("cm");
-      }
+      //Serial.print(ans);
+      //Serial.println ("cm");
+
       if (ans < 50 && ans > 15) {
         digitalWrite(jaune, HIGH);
         digitalWrite(rouge, LOW);
@@ -123,8 +133,8 @@ void loop () {
     }
   } else {
     if (DEBUG) {
-      Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
-      Serial.println (ans);
+      //Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
+      //Serial.println (ans);
     }
   }
 }

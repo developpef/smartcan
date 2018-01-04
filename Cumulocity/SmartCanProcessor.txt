@@ -1,0 +1,47 @@
+create expression String parseSigfoxDataForAlarmLevel(binStr) [
+    importClass(com.cumulocity.model.event.CumulocitySeverities);
+    var level = CumulocitySeverities.MAJOR;
+    if (binStr.length >= 16) { 
+      var alarmLevel = parseInt(binStr.substr(12, 4), 2);
+      if (alarmLevel === 1) {
+        level = CumulocitySeverities.MINOR;
+      }
+      if (alarmLevel === 2) {
+        level = CumulocitySeverities.MAJOR;
+      }
+	}
+    level;
+];
+
+create expression String parseSigfoxDataForAlarmText(binStr) [
+    importClass(com.cumulocity.model.event.CumulocitySeverities);
+    var texte = "";
+    if (binStr.length >= 16) { 
+      var alarmLevel = parseInt(binStr.substr(12, 4), 2);
+      if (alarmLevel === 1) {
+        texte = "Poubelle bientot pleine";
+      }
+      if (alarmLevel === 2) {
+        texte = "Poubelle pleine";
+      }
+	}
+    texte;
+];
+
+create variable String latestBinStr;
+
+on EventCreated e set latestBinStr = parseSigfoxDataToBinary(
+                getString(e, "com_sigfox_SigFoxData.data")
+            );
+
+insert into CreateAlarm
+select
+  "pef_SmartCan_Alarm" as type,
+  event.event.time as time,
+  event.event.source as source,
+  CumulocityAlarmStatuses.ACTIVE as status,
+  parseSigfoxDataForAlarmLevel(latestBinStr) as severity,
+  parseSigfoxDataForAlarmText(latestBinStr) as text
+from EventCreated event 
+where getObject(event, "com_sigfox_SigFoxData") is not null
+and event.event.source.value = "34765";
