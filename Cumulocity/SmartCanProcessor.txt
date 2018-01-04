@@ -28,20 +28,35 @@ create expression String parseSigfoxDataForAlarmText(binStr) [
     texte;
 ];
 
-create variable String latestBinStr;
-
-on EventCreated e set latestBinStr = parseSigfoxDataToBinary(
-                getString(e, "com_sigfox_SigFoxData.data")
-            );
+create expression String parseSigfoxDataForAlarmType(binStr) [
+    importClass(com.cumulocity.model.event.CumulocitySeverities);
+    var texte = "";
+    if (binStr.length >= 16) { 
+      var alarmLevel = parseInt(binStr.substr(12, 4), 2);
+      if (alarmLevel === 1) {
+        texte = "pef_SmartCan_Alarm_Minor";
+      }
+      if (alarmLevel === 2) {
+        texte = "pef_SmartCan_Alarm_Major";
+      }
+	}
+    texte;
+];
 
 insert into CreateAlarm
 select
-  "pef_SmartCan_Alarm" as type,
+  parseSigfoxDataForAlarmType(parseSigfoxDataToBinary(
+                getString(event, "com_sigfox_SigFoxData.data")
+            ))  as type,
   event.event.time as time,
   event.event.source as source,
   CumulocityAlarmStatuses.ACTIVE as status,
-  parseSigfoxDataForAlarmLevel(latestBinStr) as severity,
-  parseSigfoxDataForAlarmText(latestBinStr) as text
+  parseSigfoxDataForAlarmLevel(parseSigfoxDataToBinary(
+                getString(event, "com_sigfox_SigFoxData.data")
+            )) as severity,
+  parseSigfoxDataForAlarmText(parseSigfoxDataToBinary(
+                getString(event, "com_sigfox_SigFoxData.data")
+            )) as text
 from EventCreated event 
 where getObject(event, "com_sigfox_SigFoxData") is not null
 and event.event.source.value = "34765";
