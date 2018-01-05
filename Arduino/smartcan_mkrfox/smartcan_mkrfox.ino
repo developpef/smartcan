@@ -10,6 +10,7 @@ byte c[2];
 int rouge = 4;
 int jaune = 5;
 float taux = 0.0;
+unsigned long time;
 
 /*
     ATTENTION - the structure we are going to send MUST
@@ -90,7 +91,8 @@ void loop () {
   ans = Wire.endTransmission(); // send and close data
   delay(200);
 
-  if (ans == 0) {
+  if (ans == 0 && (time == 0 || millis() - time >= 1000 * 60 * 11)) { //wait 11 min
+    time = millis();
     blankState();
 
     msg.poubelleNum = 34936; // ID C8Y
@@ -111,11 +113,11 @@ void loop () {
       taux = ((60.0 - ans) / 60.0) * 100.0;
       msg.tauxRemplissage = (int) taux;
 
-      if (taux < 80 && taux > 60) {
+      if (taux < 80.0 && taux > 60.0) {
         digitalWrite(jaune, HIGH);
         digitalWrite(rouge, LOW);
         msg.alarmState = 1;
-      } else if (taux > 80) {
+      } else if (taux > 80.0) {
         digitalWrite(rouge, HIGH);
         digitalWrite(jaune, LOW);
         msg.alarmState = 2;
@@ -123,11 +125,6 @@ void loop () {
     }
 
     sendMessage();
-    delay(1000 * 60 * 11); // sleep 11 min
-
-  } else {
-    //Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
-    //Serial.println (ans);
   }
 }
 
