@@ -73,16 +73,30 @@ on EventCreated event set alarmLevelInt =
 
 insert into CreateAlarm
 select
-  parseSigfoxDataForAlarmType(alarmLevelInt)  as type,
-  event.event.time as time,
+  parseSigfoxDataForAlarmType(1)  as type,
+  e.measurement.time as time,
   getString(findManagedObjectById(
         parseSigfoxDataForCanId(sigfoxBinStr)),"id.value") as source,
   CumulocityAlarmStatuses.ACTIVE as status,
-  parseSigfoxDataForAlarmLevel(alarmLevelInt) as severity,
-  parseSigfoxDataForAlarmText(alarmLevelInt) as text
-from EventCreated event 
-where getObject(event, "com_sigfox_SigFoxData") is not null
-and event.event.source.value = "34765";
+  parseSigfoxDataForAlarmLevel(1) as severity,
+  parseSigfoxDataForAlarmText(1) as text
+from MeasurementCreated e
+where getNumber(e, "pef_SmartCanMeasurement.remplissage.value") > 60  
+and e.measurement.source.value = "34765";
+
+
+insert into CreateAlarm
+select
+  parseSigfoxDataForAlarmType(2)  as type,
+  e.measurement.time as time,
+  getString(findManagedObjectById(
+        parseSigfoxDataForCanId(sigfoxBinStr)),"id.value") as source,
+  CumulocityAlarmStatuses.ACTIVE as status,
+  parseSigfoxDataForAlarmLevel(2) as severity,
+  parseSigfoxDataForAlarmText(2) as text
+from MeasurementCreated e
+where getNumber(e, "pef_SmartCanMeasurement.remplissage.value") > 80  
+and e.measurement.source.value = "34765";
 
 
 insert into CreateMeasurement

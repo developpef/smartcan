@@ -2,8 +2,6 @@
 #include <SigFox.h>
 #include <ArduinoLowPower.h>
 
-#define DEBUG 1
-
 #define SENSOR_ADRS 0x40 // I2C address of GP2Y0E03 
 #define DISTANCE_ADRS 0x5E // Data address of Distance Value // Functions to process only at power-on and reset 
 
@@ -11,8 +9,6 @@ int ans ;
 byte c[2];
 int rouge = 4;
 int jaune = 5;
-bool warnAlarmSent = false;
-bool fullAlarmSent = false;
 float taux = 0.0;
 
 /*
@@ -46,9 +42,7 @@ void setup () {
   pinMode(jaune, OUTPUT);
   //
   if (!SigFox.begin()) {
-    if (DEBUG) {
-      //Serial.println("Shield error or not present!");
-    }
+    //Serial.println("Shield error or not present!");
     return;
   }
   /*String version = SigFox.SigVersion();
@@ -67,7 +61,7 @@ void setup () {
 
 void sendMessage() {
   //Serial.println("Sending message...");
-  
+
   // Start the module
   SigFox.begin();
   // Wait at least 30ms after first configuration (100ms before)
@@ -84,10 +78,10 @@ void sendMessage() {
   delay(100);
 
   /*Serial.begin(9600);
-  while (!Serial) {};
-  Serial.print("Status : ");
-  Serial.println(ret);
-  Serial.print("Sent message.");*/
+    while (!Serial) {};
+    Serial.print("Status : ");
+    Serial.println(ret);
+    Serial.print("Sent message.");*/
 }
 
 void loop () {
@@ -95,16 +89,17 @@ void loop () {
   Wire.write (DISTANCE_ADRS); // specify the address of the table storing the distance value
   ans = Wire.endTransmission(); // send and close data
   delay(200);
+
   if (ans == 0) {
+    blankState();
+
     msg.poubelleNum = 34936; // ID C8Y
-    
+    msg.alarmState = 0;
+    msg.tauxRemplissage = 0;
+
     ans = Wire.requestFrom(SENSOR_ADRS, 2) ;
     c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
     c[1] = Wire.read(); // Read the 3rd and 0th bits of the data
-    /*Serial.print("ans:");
-      Serial.print(c[0]);
-      Serial.print(" ");
-      Serial.println(c[1]);*/
     ans = ((c [0] * 16 + c [1]) / 16) / 4; // distance
 
     // if == 255 => mesure fausse (trop près ou trop loin)
@@ -116,40 +111,28 @@ void loop () {
       taux = ((60.0 - ans) / 60.0) * 100.0;
       msg.tauxRemplissage = (int) taux;
 
-      if (ans < 50 && ans > 15) {
+      if (taux < 80 && taux > 60) {
         digitalWrite(jaune, HIGH);
         digitalWrite(rouge, LOW);
-        if (!warnAlarmSent) {
-          msg.alarmState = 1;
-          warnAlarmSent = true;
-          sendMessage();
-        }
-      } else if (ans < 15) {
+        msg.alarmState = 1;
+      } else if (taux > 80) {
         digitalWrite(rouge, HIGH);
         digitalWrite(jaune, LOW);
-        if (!fullAlarmSent) {
-          msg.alarmState = 2;
-          fullAlarmSent = true;
-          sendMessage();
-        }
-      } else {
-        blankState();
+        msg.alarmState = 2;
       }
-    } else {
-      blankState();
     }
+
+    sendMessage();
+    delay(1000 * 60 * 11); // sleep 11 min
+
   } else {
-    if (DEBUG) {
-      //Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
-      //Serial.println (ans);
-    }
+    //Serial.print ("ERROR NO. ="); // Can not communicate with GP2Y0E03
+    //Serial.println (ans);
   }
 }
 
 void blankState() {
   digitalWrite(rouge, LOW);
   digitalWrite(jaune, LOW);
-  fullAlarmSent = false;
-  warnAlarmSent = false;
 }
 
