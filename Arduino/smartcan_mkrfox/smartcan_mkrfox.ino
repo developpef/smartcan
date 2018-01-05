@@ -13,6 +13,7 @@ int rouge = 4;
 int jaune = 5;
 bool warnAlarmSent = false;
 bool fullAlarmSent = false;
+float taux = 0.0;
 
 /*
     ATTENTION - the structure we are going to send MUST
@@ -23,7 +24,7 @@ bool fullAlarmSent = false;
 typedef struct __attribute__ ((packed)) sigfox_message {
   uint16_t poubelleNum;
   uint8_t alarmState;
-  uint8_t unused1;
+  uint8_t tauxRemplissage;
   uint16_t unused2;
   uint16_t unused3;
   uint16_t unused4;
@@ -110,6 +111,10 @@ void loop () {
     if (c[0] != 255) {
       //Serial.print(ans);
       //Serial.println ("cm");
+
+      // calcul tu taux de remplissage, pour une poubelle de 60cm
+      taux = ((60.0 - ans) / 60.0) * 100.0;
+      msg.tauxRemplissage = (int) taux;
 
       if (ans < 50 && ans > 15) {
         digitalWrite(jaune, HIGH);

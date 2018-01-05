@@ -18,6 +18,14 @@ create expression Integer parseSigfoxDataForAlarmLevelInt(binStr) [
     level;
 ];
 
+create expression Integer parseSigfoxDataForRemplissage(binStr) [
+    var level = 0;
+    if (binStr.length >= 32) { 
+      level = parseInt(binStr.substr(24, 8), 2);
+	}
+    level;
+];
+
 create expression String parseSigfoxDataForAlarmText(alarmLevel) [
     var texte = "";
     if (alarmLevel === 1) {
@@ -72,6 +80,22 @@ select
   CumulocityAlarmStatuses.ACTIVE as status,
   parseSigfoxDataForAlarmLevel(alarmLevelInt) as severity,
   parseSigfoxDataForAlarmText(alarmLevelInt) as text
+from EventCreated event 
+where getObject(event, "com_sigfox_SigFoxData") is not null
+and event.event.source.value = "34765";
+
+
+insert into CreateMeasurement
+select
+  "pef_SmartCanMeasurement" as type,
+  event.event.time as time,
+  getString(findManagedObjectById(
+        parseSigfoxDataForCanId(sigfoxBinStr)),"id.value") as source,
+  {
+    "pef_SmartCanMeasurement.remplissage.value",
+        parseSigfoxDataForRemplissage(sigfoxBinStr),
+    "pef_SmartCanMeasurement.remplissage.unit", "%"
+  } as fragments
 from EventCreated event 
 where getObject(event, "com_sigfox_SigFoxData") is not null
 and event.event.source.value = "34765";
