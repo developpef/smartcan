@@ -21,9 +21,9 @@ bool fullAlarmSent = false;
     for more details
 */
 typedef struct __attribute__ ((packed)) sigfox_message {
-  uint8_t status;
+  uint16_t poubelleNum;
   uint8_t alarmState;
-  uint16_t unused1;
+  uint8_t unused1;
   uint16_t unused2;
   uint16_t unused3;
   uint16_t unused4;
@@ -95,6 +95,8 @@ void loop () {
   ans = Wire.endTransmission(); // send and close data
   delay(200);
   if (ans == 0) {
+    msg.poubelleNum = 34936; // ID C8Y
+    
     ans = Wire.requestFrom(SENSOR_ADRS, 2) ;
     c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
     c[1] = Wire.read(); // Read the 3rd and 0th bits of the data

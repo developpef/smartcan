@@ -1,62 +1,77 @@
-create expression String parseSigfoxDataForAlarmLevel(binStr) [
+create expression String parseSigfoxDataForAlarmLevel(alarmLevel) [
     importClass(com.cumulocity.model.event.CumulocitySeverities);
     var level = CumulocitySeverities.MAJOR;
-    if (binStr.length >= 16) { 
-      var alarmLevel = parseInt(binStr.substr(12, 4), 2);
-      if (alarmLevel === 1) {
-        level = CumulocitySeverities.MINOR;
-      }
-      if (alarmLevel === 2) {
-        level = CumulocitySeverities.MAJOR;
-      }
+    if (alarmLevel === 1) {
+      level = CumulocitySeverities.MINOR;
+    }
+    if (alarmLevel === 2) {
+      level = CumulocitySeverities.MAJOR;
+    }
+    level;
+];
+
+create expression Integer parseSigfoxDataForAlarmLevelInt(binStr) [
+    var level = 0;
+    if (binStr.length >= 24) { 
+      level = parseInt(binStr.substr(20, 4), 2);
 	}
     level;
 ];
 
-create expression String parseSigfoxDataForAlarmText(binStr) [
-    importClass(com.cumulocity.model.event.CumulocitySeverities);
+create expression String parseSigfoxDataForAlarmText(alarmLevel) [
     var texte = "";
-    if (binStr.length >= 16) { 
-      var alarmLevel = parseInt(binStr.substr(12, 4), 2);
-      if (alarmLevel === 1) {
-        texte = "Poubelle bientot pleine";
-      }
-      if (alarmLevel === 2) {
-        texte = "Poubelle pleine";
-      }
-	}
+    if (alarmLevel === 1) {
+      texte = "Poubelle bientot pleine";
+    }
+    if (alarmLevel === 2) {
+      texte = "Poubelle pleine";
+    }
     texte;
 ];
 
-create expression String parseSigfoxDataForAlarmType(binStr) [
-    importClass(com.cumulocity.model.event.CumulocitySeverities);
+create expression String parseSigfoxDataForAlarmType(alarmLevel) [
     var texte = "";
-    if (binStr.length >= 16) { 
-      var alarmLevel = parseInt(binStr.substr(12, 4), 2);
       if (alarmLevel === 1) {
         texte = "pef_SmartCan_Alarm_Minor";
       }
       if (alarmLevel === 2) {
         texte = "pef_SmartCan_Alarm_Major";
       }
+    texte;
+];
+
+create expression String parseSigfoxDataForCanId(binStr) [
+    var texte = "0";
+    if (binStr.length >= 16) { 
+      var num = parseInt(
+        binStr.substr(8, 8).concat(binStr.substr(0, 8)), 2);
+      texte = num.toString();
 	}
     texte;
 ];
 
+
+create variable String sigfoxBinStr;
+on EventCreated event set sigfoxBinStr = parseSigfoxDataToBinary(
+                getString(event, "com_sigfox_SigFoxData.data")
+            );
+
+
+create variable Integer alarmLevelInt;
+on EventCreated event set alarmLevelInt = 
+            parseSigfoxDataForAlarmLevelInt(sigfoxBinStr);
+
+
+
 insert into CreateAlarm
 select
-  parseSigfoxDataForAlarmType(parseSigfoxDataToBinary(
-                getString(event, "com_sigfox_SigFoxData.data")
-            ))  as type,
+  parseSigfoxDataForAlarmType(alarmLevelInt)  as type,
   event.event.time as time,
-  event.event.source as source,
+  getString(findManagedObjectById(
+        parseSigfoxDataForCanId(sigfoxBinStr)),"id.value") as source,
   CumulocityAlarmStatuses.ACTIVE as status,
-  parseSigfoxDataForAlarmLevel(parseSigfoxDataToBinary(
-                getString(event, "com_sigfox_SigFoxData.data")
-            )) as severity,
-  parseSigfoxDataForAlarmText(parseSigfoxDataToBinary(
-                getString(event, "com_sigfox_SigFoxData.data")
-            )) as text
+  parseSigfoxDataForAlarmLevel(alarmLevelInt) as severity,
+  parseSigfoxDataForAlarmText(alarmLevelInt) as text
 from EventCreated event 
 where getObject(event, "com_sigfox_SigFoxData") is not null
 and event.event.source.value = "34765";
