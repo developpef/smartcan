@@ -4,11 +4,13 @@
 
 #define SENSOR_ADRS 0x40 // I2C address of GP2Y0E03 
 #define DISTANCE_ADRS 0x5E // Data address of Distance Value // Functions to process only at power-on and reset 
+#define TAILLE_POUBELLE 50.0 // cm
+#define LUM_SENSOR A1
+#define rouge 4
+#define jaune 5
 
 int ans ;
 byte c[2];
-int rouge = 4;
-int jaune = 5;
 float taux = 0.0;
 unsigned long time;
 
@@ -41,6 +43,7 @@ void setup () {
   delay(1000); // start after 1 second
   pinMode(rouge, OUTPUT);
   pinMode(jaune, OUTPUT);
+  pinMode(LUM_SENSOR, INPUT_PULLDOWN);
   //
   if (!SigFox.begin()) {
     //Serial.println("Shield error or not present!");
@@ -86,45 +89,48 @@ void sendMessage() {
 }
 
 void loop () {
-  Wire.beginTransmission (SENSOR_ADRS); // start communication processing
-  Wire.write (DISTANCE_ADRS); // specify the address of the table storing the distance value
-  ans = Wire.endTransmission(); // send and close data
-  delay(200);
+  //wait 11 min and check can is closed
+  if ((time == 0 || millis() - time >= 1000 * 60 * 11) && analogRead(LUM_SENSOR) >= 900) {
+    Wire.beginTransmission (SENSOR_ADRS); // start communication processing
+    Wire.write (DISTANCE_ADRS); // specify the address of the table storing the distance value
+    ans = Wire.endTransmission(); // send and close data
+    delay(200);
 
-  if (ans == 0 && (time == 0 || millis() - time >= 1000 * 60 * 11)) { //wait 11 min
-    time = millis();
-    blankState();
+    if (ans == 0) {
+      time = millis();
+      blankState();
 
-    msg.poubelleNum = 34936; // ID C8Y
-    msg.alarmState = 0;
-    msg.tauxRemplissage = 0;
+      msg.poubelleNum = 34936; // ID C8Y
+      msg.alarmState = 0;
+      msg.tauxRemplissage = 0;
 
-    ans = Wire.requestFrom(SENSOR_ADRS, 2) ;
-    c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
-    c[1] = Wire.read(); // Read the 3rd and 0th bits of the data
-    ans = ((c [0] * 16 + c [1]) / 16) / 4; // distance
+      ans = Wire.requestFrom(SENSOR_ADRS, 2) ;
+      c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
+      c[1] = Wire.read(); // Read the 3rd and 0th bits of the data
+      ans = ((c [0] * 16 + c [1]) / 16) / 4; // distance
 
-    // if == 255 => mesure fausse (trop près ou trop loin)
-    if (c[0] != 255) {
-      //Serial.print(ans);
-      //Serial.println ("cm");
+      // if == 255 => mesure fausse (trop près ou trop loin)
+      if (c[0] != 255) {
+        //Serial.print(ans);
+        //Serial.println ("cm");
 
-      // calcul tu taux de remplissage, pour une poubelle de 60cm
-      taux = ((60.0 - ans) / 60.0) * 100.0;
-      msg.tauxRemplissage = (int) taux;
+        // calcul tu taux de remplissage, pour une poubelle de 60cm
+        taux = ((60.0 - ans) / 60.0) * 100.0;
+        msg.tauxRemplissage = (int) taux;
 
-      if (taux < 80.0 && taux > 60.0) {
-        digitalWrite(jaune, HIGH);
-        digitalWrite(rouge, LOW);
-        msg.alarmState = 1;
-      } else if (taux > 80.0) {
-        digitalWrite(rouge, HIGH);
-        digitalWrite(jaune, LOW);
-        msg.alarmState = 2;
+        if (taux < 80.0 && taux > 60.0) {
+          digitalWrite(jaune, HIGH);
+          digitalWrite(rouge, LOW);
+          msg.alarmState = 1;
+        } else if (taux > 80.0) {
+          digitalWrite(rouge, HIGH);
+          digitalWrite(jaune, LOW);
+          msg.alarmState = 2;
+        }
       }
-    }
 
-    sendMessage();
+      sendMessage();
+    }
   }
 }
 
