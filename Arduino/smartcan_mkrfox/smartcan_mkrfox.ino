@@ -4,7 +4,7 @@
 
 #define SENSOR_ADRS 0x40 // I2C address of GP2Y0E03 
 #define DISTANCE_ADRS 0x5E // Data address of Distance Value // Functions to process only at power-on and reset 
-#define TAILLE_POUBELLE 50.0 // cm
+#define TAILLE_POUBELLE 35.0 // cm
 #define LUM_SENSOR A1
 #define rouge 4
 #define jaune 5
@@ -96,6 +96,8 @@ void loop () {
     ans = Wire.endTransmission(); // send and close data
     delay(200);
 
+    digitalWrite(rouge, LOW);
+
     if (ans == 0) {
       time = millis();
       blankState();
@@ -108,14 +110,14 @@ void loop () {
       c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
       c[1] = Wire.read(); // Read the 3rd and 0th bits of the data
       ans = ((c [0] * 16 + c [1]) / 16) / 4; // distance
+      //Serial.print(ans);
+      //Serial.println ("cm");
 
       // if == 255 => mesure fausse (trop près ou trop loin)
       if (c[0] != 255) {
-        //Serial.print(ans);
-        //Serial.println ("cm");
 
-        // calcul tu taux de remplissage, pour une poubelle de 60cm
-        taux = ((60.0 - ans) / 60.0) * 100.0;
+        // calcul tu taux de remplissage, pour une poubelle de TAILLE_POUBELLE
+        taux = ((TAILLE_POUBELLE - ans) / TAILLE_POUBELLE) * 100.0;
         msg.tauxRemplissage = (int) taux;
 
         if (taux < 80.0 && taux > 60.0) {
@@ -130,6 +132,8 @@ void loop () {
       }
 
       sendMessage();
+    } else {
+      digitalWrite(rouge, HIGH);
     }
   }
 }
