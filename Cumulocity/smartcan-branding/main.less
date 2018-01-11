@@ -1,0 +1,29 @@
+@import "variables/index.less";
+
+@import "../../node_modules/cumulocity-ui-build/__baseBranding__/variables/index.less";
+
+@import "../../node_modules/cumulocity-ui-build/__baseBranding__/export.less";
+
+
+.header-bar {
+  background: #f29400 !important;
+}
+
+.title c8y-app-icon, .drawer-toggle, .dropdown-toggle {
+	display: none !important;
+}
+
+.navigator .title {
+	background-image: url(img/smartcan-logo.png) !important;
+    background-repeat: no-repeat !important;
+    background-size: 140px !important;
+    padding-top: 64px !important;
+	background-position-x: 50px !important;
+	background-position-y: 5px !important;
+}
+
+.c8y-icon-duocolor:not(.fa).c8y-icon-cockpit:before {
+	background-image: url(img/smartcan-logo.png) !important;
+	background-size: cover;
+    background-position-x: 10px;
+}

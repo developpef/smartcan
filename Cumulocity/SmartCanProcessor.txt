@@ -26,6 +26,14 @@ create expression Integer parseSigfoxDataForRemplissage(binStr) [
     level;
 ];
 
+create expression Integer parseSigfoxDataForOuvertures(binStr) [
+    var nb = 0;
+    if (binStr.length >= 40) { 
+      nb = parseInt(binStr.substr(32, 8), 2);
+	}
+    nb;
+];
+
 create expression String parseSigfoxDataForAlarmText(alarmLevel) [
     var texte = "";
     if (alarmLevel === 1) {
@@ -85,7 +93,9 @@ select
   {
     "pef_SmartCanMeasurement.remplissage.value",
         parseSigfoxDataForRemplissage(sigfoxBinStr),
-    "pef_SmartCanMeasurement.remplissage.unit", "%"
+    "pef_SmartCanMeasurement.remplissage.unit", "%",
+    "pef_SmartCanMeasurement.nbOuvertures.value",
+        parseSigfoxDataForOuvertures(sigfoxBinStr)
   } as fragments
 from EventCreated event 
 where getObject(event, "com_sigfox_SigFoxData") is not null

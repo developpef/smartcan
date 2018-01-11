@@ -1,0 +1,9 @@
+{
+  "name": "smartcan-branding",
+  "description": "Smartcan Branding Plugin",
+  "less": ["main.less"],
+  "copy": ["img"],
+  "replaceImports": {
+    "core/c8yBranding": "cockpit-smartcan/smartcan-branding"
+  }
+}

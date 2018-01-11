@@ -13,6 +13,9 @@ int ans ;
 byte c[2];
 float taux = 0.0;
 unsigned long time;
+bool isOpened;
+bool isClosed;
+int lum;
 
 /*
     ATTENTION - the structure we are going to send MUST
@@ -24,7 +27,8 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint16_t poubelleNum;
   uint8_t alarmState;
   uint8_t tauxRemplissage;
-  uint16_t unused2;
+  uint8_t nbOuvertures;
+  uint8_t unused2;
   uint16_t unused3;
   uint16_t unused4;
   uint16_t unused5;
@@ -89,8 +93,16 @@ void sendMessage() {
 }
 
 void loop () {
+  lum = analogRead(LUM_SENSOR);
+  if (lum < 800) {
+    isOpened = true;
+  } else if (isOpened) {
+    msg.nbOuvertures++;
+    isOpened = false;
+  }
+  
   //wait 11 min and check can is closed
-  if ((time == 0 || millis() - time >= 1000 * 60 * 11) && analogRead(LUM_SENSOR) >= 900) {
+  if ((time == 0 || millis() - time >= 1000 * 60 * 11) &&  lum >= 900) {
     Wire.beginTransmission (SENSOR_ADRS); // start communication processing
     Wire.write (DISTANCE_ADRS); // specify the address of the table storing the distance value
     ans = Wire.endTransmission(); // send and close data
