@@ -6,6 +6,7 @@
 #define DISTANCE_ADRS 0x5E // Data address of Distance Value // Functions to process only at power-on and reset 
 #define TAILLE_POUBELLE 35.0 // cm
 #define LUM_SENSOR A1
+#define POIDS_SENSOR A2
 #define rouge 4
 #define jaune 5
 
@@ -37,17 +38,30 @@ typedef struct __attribute__ ((packed)) sigfox_message {
 // stub for message which will be sent
 SigfoxMessage msg;
 
+
+/**
+   CAPTEUR POIDS
+*/
+int fsrReading;      // the analog reading from the FSR resistor divider
+int fsrVoltage;     // the analog reading converted to voltage
+unsigned long fsrResistance;  // The voltage converted to resistance, can be very big so make "long"
+unsigned long fsrConductance;
+long fsrForce;       // Finally, the resistance converted to force
+
+
+
 void setup () {
   // Initialize serial communication
   Wire.begin(); // Initialize I2C,
 
-  //Serial.begin(9600);
-  //while (!Serial) {};
+  Serial.begin(9600);
+  while (!Serial) {};
 
   delay(1000); // start after 1 second
   pinMode(rouge, OUTPUT);
   pinMode(jaune, OUTPUT);
   pinMode(LUM_SENSOR, INPUT_PULLDOWN);
+  pinMode(POIDS_SENSOR, INPUT_PULLDOWN);
   //
   if (!SigFox.begin()) {
     //Serial.println("Shield error or not present!");
@@ -100,7 +114,38 @@ void loop () {
     msg.nbOuvertures++;
     isOpened = false;
   }
-  
+
+  /**
+     CAPTEUR POIDS
+  */
+  fsrReading = analogRead(POIDS_SENSOR);
+  Serial.print("Analog reading = ");
+  Serial.println(fsrReading);
+
+  // analog voltage reading ranges from about 0 to 1023 which maps to 0V to 5V (= 5000mV)
+  fsrVoltage = map(fsrReading, 0, 1023, 0, 5000);
+  Serial.print("Voltage reading in mV = ");
+  Serial.println(fsrVoltage);
+
+  // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
+  // so FSR = ((Vcc - V) * R) / V        yay math!
+  fsrResistance = 5000 - fsrVoltage;     // fsrVoltage is in millivolts so 5V = 5000mV
+  fsrResistance *= 10000;                // 10K resistor
+  fsrResistance /= fsrVoltage;
+  fsrConductance = 1000000;           // we measure in micromhos so
+  fsrConductance /= fsrResistance;
+  // Use the two FSR guide graphs to approximate the force
+  if (fsrConductance <= 1000) {
+    fsrForce = fsrConductance / 80;
+  } else {
+    fsrForce = fsrConductance - 1000;
+    fsrForce /= 30;
+  }
+  Serial.print("Force in Newtons: ");
+  Serial.println(fsrForce);
+  delay(500);
+
+
   //wait 11 min and check can is closed
   if ((time == 0 || millis() - time >= 1000 * 60 * 11) &&  lum >= 900) {
     Wire.beginTransmission (SENSOR_ADRS); // start communication processing
