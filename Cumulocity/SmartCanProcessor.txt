@@ -1,3 +1,15 @@
+create expression String parseSigfoxDataToBinary(hexStr) [
+    var binStr = "";
+    for(var i=0; i<hexStr.length; i++) {
+      var binar = parseInt(hexStr.charAt(i),16).toString(2);
+      while (binar.length < 4) {
+        binar = "0".concat(binar);
+      }
+      binStr = binStr.concat(binar);
+    }
+    binStr;
+];
+
 create expression String parseSigfoxDataForAlarmLevel(alarmLevel) [
     importClass(com.cumulocity.model.event.CumulocitySeverities);
     var level = CumulocitySeverities.MAJOR;
@@ -32,6 +44,15 @@ create expression Integer parseSigfoxDataForOuvertures(binStr) [
       nb = parseInt(binStr.substr(32, 8), 2);
 	}
     nb;
+];
+
+create expression Float parseSigfoxDataForPoids(binStr) [
+    var nb = 0;
+    if (binStr.length >= 56) { 
+      nb = parseInt(
+        binStr.substr(48, 8).concat(binStr.substr(40, 8)), 2);
+	}
+    nb * 0.102;
 ];
 
 create expression String parseSigfoxDataForAlarmText(alarmLevel) [
@@ -95,7 +116,10 @@ select
         parseSigfoxDataForRemplissage(sigfoxBinStr),
     "pef_SmartCanMeasurement.remplissage.unit", "%",
     "pef_SmartCanMeasurement.nbOuvertures.value",
-        parseSigfoxDataForOuvertures(sigfoxBinStr)
+        parseSigfoxDataForOuvertures(sigfoxBinStr),
+    "pef_SmartCanMeasurement.poids.value",
+        parseSigfoxDataForPoids(sigfoxBinStr),
+    "pef_SmartCanMeasurement.poids.unit", "kg"
   } as fragments
 from EventCreated event 
 where getObject(event, "com_sigfox_SigFoxData") is not null

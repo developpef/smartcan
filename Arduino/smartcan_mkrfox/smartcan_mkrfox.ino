@@ -17,6 +17,8 @@ unsigned long time;
 bool isOpened;
 bool isClosed;
 int lum;
+float dist = 0.0;
+int poidsNewton = 0;
 
 /*
     ATTENTION - the structure we are going to send MUST
@@ -29,8 +31,8 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t alarmState;
   uint8_t tauxRemplissage;
   uint8_t nbOuvertures;
+  uint16_t poids;
   uint8_t unused2;
-  uint16_t unused3;
   uint16_t unused4;
   uint16_t unused5;
 } SigfoxMessage;
@@ -54,8 +56,8 @@ void setup () {
   // Initialize serial communication
   Wire.begin(); // Initialize I2C,
 
-  Serial.begin(9600);
-  while (!Serial) {};
+  //Serial.begin(9600);
+  //while (!Serial) {};
 
   delay(1000); // start after 1 second
   pinMode(rouge, OUTPUT);
@@ -106,7 +108,55 @@ void sendMessage() {
     Serial.print("Sent message.");*/
 }
 
+/**
+        CAPTEUR DISTANCE
+*/
+float mesureDistance() {
+  dist = 0.0;
+  ans = Wire.requestFrom(SENSOR_ADRS, 2) ;
+  c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
+  c[1] = Wire.read(); // Read the 3rd and 0th bits of the data
+  ans = ((c [0] * 16 + c [1]) / 16) / 4; // distance cm
+  dist += ans;
+  //Serial.print(ans);
+  //Serial.println ("cm");
+  return dist;
+}
+
+/**
+         CAPTEUR POIDS
+*/
+int mesurePoids() {
+  poidsNewton = 0;
+  for (int i = 0; i < 5; i++) {
+    fsrReading = analogRead(POIDS_SENSOR);
+    // analog voltage reading ranges from about 0 to 1023 which maps to 0V to 5V (= 5000mV)
+    fsrVoltage = map(fsrReading, 0, 1023, 0, 5000);
+    // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
+    // so FSR = ((Vcc - V) * R) / V        yay math!
+    fsrResistance = 5000 - fsrVoltage;     // fsrVoltage is in millivolts so 5V = 5000mV
+    fsrResistance *= 10000;                // 10K resistor
+    fsrResistance /= fsrVoltage;
+    fsrConductance = 1000000;           // we measure in micromhos so
+    fsrConductance /= fsrResistance;
+    // Use the two FSR guide graphs to approximate the force
+    if (fsrConductance <= 1000) {
+      fsrForce = fsrConductance / 80;
+    } else {
+      fsrForce = fsrConductance - 1000;
+      fsrForce /= 30;
+    }
+    poidsNewton += fsrForce;
+    delay(100);
+  }
+  poidsNewton /= 5;
+  return poidsNewton;
+}
+
 void loop () {
+  /**
+     NB OUVERTURES
+  */
   lum = analogRead(LUM_SENSOR);
   if (lum < 800) {
     isOpened = true;
@@ -114,36 +164,6 @@ void loop () {
     msg.nbOuvertures++;
     isOpened = false;
   }
-
-  /**
-     CAPTEUR POIDS
-  */
-  fsrReading = analogRead(POIDS_SENSOR);
-  Serial.print("Analog reading = ");
-  Serial.println(fsrReading);
-
-  // analog voltage reading ranges from about 0 to 1023 which maps to 0V to 5V (= 5000mV)
-  fsrVoltage = map(fsrReading, 0, 1023, 0, 5000);
-  Serial.print("Voltage reading in mV = ");
-  Serial.println(fsrVoltage);
-
-  // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
-  // so FSR = ((Vcc - V) * R) / V        yay math!
-  fsrResistance = 5000 - fsrVoltage;     // fsrVoltage is in millivolts so 5V = 5000mV
-  fsrResistance *= 10000;                // 10K resistor
-  fsrResistance /= fsrVoltage;
-  fsrConductance = 1000000;           // we measure in micromhos so
-  fsrConductance /= fsrResistance;
-  // Use the two FSR guide graphs to approximate the force
-  if (fsrConductance <= 1000) {
-    fsrForce = fsrConductance / 80;
-  } else {
-    fsrForce = fsrConductance - 1000;
-    fsrForce /= 30;
-  }
-  Serial.print("Force in Newtons: ");
-  Serial.println(fsrForce);
-  delay(500);
 
 
   //wait 11 min and check can is closed
@@ -162,33 +182,30 @@ void loop () {
       msg.poubelleNum = 34936; // ID C8Y
       msg.alarmState = 0;
       msg.tauxRemplissage = 0;
+      msg.poids = mesurePoids();
 
-      ans = Wire.requestFrom(SENSOR_ADRS, 2) ;
-      c[0] = Wire.read(); // Read the 11th to 4th bits of data c [1]
-      c[1] = Wire.read(); // Read the 3rd and 0th bits of the data
-      ans = ((c [0] * 16 + c [1]) / 16) / 4; // distance
-      //Serial.print(ans);
-      //Serial.println ("cm");
+      dist = mesureDistance();
 
       // if == 255 => mesure fausse (trop près ou trop loin)
       if (c[0] != 255) {
-
         // calcul tu taux de remplissage, pour une poubelle de TAILLE_POUBELLE
-        taux = ((TAILLE_POUBELLE - ans) / TAILLE_POUBELLE) * 100.0;
+        taux = ((TAILLE_POUBELLE - dist) / TAILLE_POUBELLE) * 100.0;
         msg.tauxRemplissage = (int) taux;
+      }
 
-        if (taux < 80.0 && taux > 60.0) {
-          digitalWrite(jaune, HIGH);
-          digitalWrite(rouge, LOW);
-          msg.alarmState = 1;
-        } else if (taux > 80.0) {
-          digitalWrite(rouge, HIGH);
-          digitalWrite(jaune, LOW);
-          msg.alarmState = 2;
-        }
+      if (taux < 80.0 && taux > 60.0) {
+        digitalWrite(jaune, HIGH);
+        digitalWrite(rouge, LOW);
+        msg.alarmState = 1;
+      } else if (taux > 80.0) {
+        digitalWrite(rouge, HIGH);
+        digitalWrite(jaune, LOW);
+        msg.alarmState = 2;
       }
 
       sendMessage();
+
+      msg.nbOuvertures = 0;
     } else {
       digitalWrite(rouge, HIGH);
     }
