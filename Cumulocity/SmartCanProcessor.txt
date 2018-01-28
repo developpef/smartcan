@@ -49,8 +49,8 @@ create expression Integer parseSigfoxDataForOuvertures(binStr) [
 create expression Float parseSigfoxDataForPoids(binStr) [
     var nb = 0;
     if (binStr.length >= 56) { 
-      nb = parseInt(
-        binStr.substr(48, 8).concat(binStr.substr(40, 8)), 2);
+      nb = parseInt(binStr.substr(48, 8).concat(binStr.substr(40, 8)), 2);
+      nb = nb / 100;
 	}
     nb * 0.102;
 ];

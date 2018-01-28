@@ -18,7 +18,7 @@ bool isOpened;
 bool isClosed;
 int lum;
 float dist = 0.0;
-int poidsNewton = 0;
+float poidsNewton = 0.0;
 
 /*
     ATTENTION - the structure we are going to send MUST
@@ -33,8 +33,8 @@ typedef struct __attribute__ ((packed)) sigfox_message {
   uint8_t nbOuvertures;
   uint16_t poids;
   uint8_t unused2;
+  uint16_t unused3;
   uint16_t unused4;
-  uint16_t unused5;
 } SigfoxMessage;
 
 // stub for message which will be sent
@@ -46,9 +46,9 @@ SigfoxMessage msg;
 */
 int fsrReading;      // the analog reading from the FSR resistor divider
 int fsrVoltage;     // the analog reading converted to voltage
-unsigned long fsrResistance;  // The voltage converted to resistance, can be very big so make "long"
-unsigned long fsrConductance;
-long fsrForce;       // Finally, the resistance converted to force
+float fsrResistance;  // The voltage converted to resistance, can be very big so make "long"
+float fsrConductance;
+float fsrForce;       // Finally, the resistance converted to force
 
 
 
@@ -63,7 +63,7 @@ void setup () {
   pinMode(rouge, OUTPUT);
   pinMode(jaune, OUTPUT);
   pinMode(LUM_SENSOR, INPUT_PULLDOWN);
-  pinMode(POIDS_SENSOR, INPUT_PULLDOWN);
+  pinMode(POIDS_SENSOR, INPUT);
   //
   if (!SigFox.begin()) {
     //Serial.println("Shield error or not present!");
@@ -127,9 +127,11 @@ float mesureDistance() {
          CAPTEUR POIDS
 */
 int mesurePoids() {
-  poidsNewton = 0;
+  poidsNewton = 0.0;
   for (int i = 0; i < 5; i++) {
     fsrReading = analogRead(POIDS_SENSOR);
+    //Serial.print("fsrReading:");
+    //Serial.println(fsrReading);
     // analog voltage reading ranges from about 0 to 1023 which maps to 0V to 5V (= 5000mV)
     fsrVoltage = map(fsrReading, 0, 1023, 0, 5000);
     // The voltage = Vcc * R / (R + FSR) where R = 10K and Vcc = 5V
@@ -146,11 +148,18 @@ int mesurePoids() {
       fsrForce = fsrConductance - 1000;
       fsrForce /= 30;
     }
+    //Serial.print("fsrForce:");
+    //Serial.println(fsrForce);
     poidsNewton += fsrForce;
     delay(100);
   }
-  poidsNewton /= 5;
-  return poidsNewton;
+  poidsNewton /= 5.0;
+  //Serial.print("poidsNewton:");
+  //Serial.println(poidsNewton);
+  poidsNewton *= 100.0;
+  //Serial.print("poidsNewton:");
+  //Serial.println((int)poidsNewton);
+  return (int) poidsNewton;
 }
 
 void loop () {
@@ -164,7 +173,8 @@ void loop () {
     msg.nbOuvertures++;
     isOpened = false;
   }
-
+  // pour gérer le mouvement de fermeture de la poubelle
+  delay(500);
 
   //wait 11 min and check can is closed
   if ((time == 0 || millis() - time >= 1000 * 60 * 11) &&  lum >= 900) {
