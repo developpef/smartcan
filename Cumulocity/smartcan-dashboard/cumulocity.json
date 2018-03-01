@@ -1,0 +1,10 @@
+{
+  "name": "smartcan-dashboard",
+  "description": "Smartcan Dashboard Plugin",
+  "ngModules": [
+    "cockpit-smartcan.smartcan-dashboard"
+  ],
+  "js": [
+    "smartcan-dashboard.config.js"
+  ]
+}
