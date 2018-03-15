@@ -1,0 +1,23 @@
+<html>
+	<head>
+		<title>ARjs with Urban Power model</title>
+		<script src="https://aframe.io/releases/0.8.0/aframe.min.js"></script>
+		<!--<script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.12.3/dist/aframe-extras.min.js"></script>
+		<script src="https://rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>-->
+		<script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
+	</head>
+
+	<body style='margin : 0px; overflow: hidden;'>
+		<a-scene embedded arjs>
+			<a-assets>
+				<!--<img id="fall" src="http://www.icone-png.com/png/13/13081.png" />-->
+				<img id="fall" src="https://www.planete-images.com/boutique-images/18543-thickbox_default/carte-jehanne-weyman-la-montgolfiere-13x155-cm.jpg" />
+			</a-assets>
+			<!-- handle marker with hiro preset -->
+			<a-marker preset="hiro">
+				<a-image src="#fall"  width="1" height="1"></a-image>
+			</a-marker>
+			<a-entity camera></a-entity>
+		</a-scene>
+	</body>
+</html>
