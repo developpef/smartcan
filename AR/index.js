@@ -15,7 +15,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/pef', function (req, res) {
-  res.sendFile(path.join(__dirname + 'vr.html'));
+  res.sendFile(path.join('vr.html'));
 });
 
 app.listen(process.env.PORT || 8080);
