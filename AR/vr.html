@@ -17,7 +17,6 @@
 				 if(!sentHandshake) {
 					 sendTextMessage(JSON.stringify([{"channel":"/meta/handshake","ext":{"com.cumulocity.authn":{"token":"dGVzdHNfcnVubmVyOnRlc3RzX3J1bm5lcg=="}}, "version":"1.0","mininumVersion":"1.0beta","supportedConnectionTypes":["websocket","long-polling","callback-polling"],"advice":{"timeout":120000,"interval":30000}}]));
 					 sentHandshake=true;
-					alert('sentHandshake');
 				 } else if (!sentSubscription) {
 					sendTextMessage(JSON.stringify([
 					  {
@@ -27,7 +26,6 @@
 					  }
 					]));
 					sentSubscription = true;
-					alert('sentSubscription');
 				 } else if (!sentConnect) {
 					sendTextMessage(JSON.stringify([
 					  {
@@ -38,7 +36,6 @@
 					  }
 					]));
 					sentConnect = true;
-					alert('sentConnect');
 				 }
 			 }
 		</script>
@@ -47,12 +44,12 @@
 	<body style='margin : 0px; overflow: hidden;'>
 		<a-scene embedded arjs>
 			<a-assets>
-				<img id="fall" src="img/data.png"/>
+				<img id="fall" src="img/circle.png"/>
 			</a-assets>
 			<!-- handle marker with hiro preset -->
 			<a-marker preset="hiro">
-				<a-image src="#fall"  width="1" height="1" position="0.5 0.5 0"></a-image>
-				<a-text test-counter id="texte" value="Pef"></a-text>
+				<a-image src="#fall"  width="1" height="1" position="1 1 0"></a-image>
+				<a-text test-counter id="texte" value="Pef" position="1.2 0.8 0"></a-text>
 			</a-marker>
 			<a-entity camera></a-entity>
 		</a-scene>
@@ -61,15 +58,12 @@
 			var sentSubscription = false;
 			var sentConnect = false;
 			var clientId = '';
-			var newdata = '';
 
 			var host = "wss://pefgfi.cumulocity.com/cep/realtime";
 			try {
 				socket = new WebSocket(host);
 
 				socket.onopen = function (openEvent) {
-					alert('start');
-					//
 					connectWS();
 				};
 
@@ -86,21 +80,17 @@
 						} else {
 							// read data
 							var type = data.data.data.com_fido_naming_capability_Luminosity.L.value;
-							newdata = type;
-							alert("measure : "+type);
-							document.querySelector('a-scene').querySelector('#texte').setAttribute('value', newdata);
+							document.querySelector('a-scene').querySelector('#texte').setAttribute('value', type+' lux');
 						}
 					}
 				 };
 
 				socket.onerror = function (errorEvent) {
-					alert(
-					'WebSocket Status:: Error was reported');
+					alert('WebSocket Status:: Error was reported');
 				};
 
 				socket.onclose = function (closeEvent) {
-					alert(
-					'WebSocket Status:: Socket Closed');
+					alert('WebSocket Status:: Socket Closed');
 				};
 			} catch (exception) { if (window.console) console.log(exception); }
 		</script>
