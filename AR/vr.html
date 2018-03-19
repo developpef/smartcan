@@ -17,6 +17,7 @@
 				 if(!sentHandshake) {
 					 sendTextMessage(JSON.stringify([{"channel":"/meta/handshake","ext":{"com.cumulocity.authn":{"token":"dGVzdHNfcnVubmVyOnRlc3RzX3J1bm5lcg=="}}, "version":"1.0","mininumVersion":"1.0beta","supportedConnectionTypes":["websocket","long-polling","callback-polling"],"advice":{"timeout":120000,"interval":30000}}]));
 					 sentHandshake=true;
+					alert('sentHandshake');
 				 } else if (!sentSubscription) {
 					sendTextMessage(JSON.stringify([
 					  {
@@ -26,6 +27,7 @@
 					  }
 					]));
 					sentSubscription = true;
+					alert('sentSubscription');
 				 } else if (!sentConnect) {
 					sendTextMessage(JSON.stringify([
 					  {
@@ -36,6 +38,7 @@
 					  }
 					]));
 					sentConnect = true;
+					alert('sentConnect');
 				 }
 			 }
 		</script>
@@ -64,7 +67,7 @@
 				socket = new WebSocket(host);
 
 				socket.onopen = function (openEvent) {
-					alert('start');
+					console.log('*** start');
 					connectWS();
 				};
 
