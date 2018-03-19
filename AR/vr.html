@@ -52,7 +52,7 @@
 			<!-- handle marker with hiro preset -->
 			<a-marker preset="hiro">
 				<a-image src="#fall"  width="1" height="1" position="0.5 0.5 0"></a-image>
-				<a-text id="texte" value="Pef"></a-text>
+				<a-text test-counter id="texte" value="Pef"></a-text>
 			</a-marker>
 			<a-entity camera></a-entity>
 		</a-scene>
@@ -61,13 +61,15 @@
 			var sentSubscription = false;
 			var sentConnect = false;
 			var clientId = '';
+			var newdata = '';
 
 			var host = "wss://pefgfi.cumulocity.com/cep/realtime";
 			try {
 				socket = new WebSocket(host);
 
 				socket.onopen = function (openEvent) {
-					console.log('*** start');
+					alert('start');
+					//
 					connectWS();
 				};
 
@@ -84,8 +86,9 @@
 						} else {
 							// read data
 							var type = data.data.data.com_fido_naming_capability_Luminosity.L.value;
+							newdata = type;
 							alert("measure : "+type);
-							document.getElementById('texte').value = type;
+							document.querySelector('a-scene').querySelector('#texte').setAttribute('value', newdata);
 						}
 					}
 				 };
