@@ -5,6 +5,48 @@
 		<!--<script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.12.3/dist/aframe-extras.min.js"></script>
 		<script src="https://rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>-->
 		<script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
+		<script>
+			 function sendTextMessage(text) {
+
+				if (socket.readyState != WebSocket.OPEN) return;
+
+				socket.send(text);
+			 }
+
+			 function sendBinaryMessage() {
+				if (socket.readyState != WebSocket.OPEN) return;
+
+				var sourceCanvas = document.getElementById('source');
+
+				socket.send(sourceCanvas.msToBlob());
+			 }    
+			 
+			 function connectWS() {
+				 if(!sentHandshake) {
+					 sendTextMessage(JSON.stringify([{"channel":"/meta/handshake","ext":{"com.cumulocity.authn":{"token":"dGVzdHNfcnVubmVyOnRlc3RzX3J1bm5lcg=="}}, "version":"1.0","mininumVersion":"1.0beta","supportedConnectionTypes":["websocket","long-polling","callback-polling"],"advice":{"timeout":120000,"interval":30000}}]));
+					 sentHandshake=true;
+				 } else if (!sentSubscription) {
+					sendTextMessage(JSON.stringify([
+					  {
+						"channel": "/meta/subscribe",
+						"clientId": clientId,
+						"subscription": "/measurements/*"
+					  }
+					]));
+					sentSubscription = true;
+				 } else if (!sentConnect) {
+					sendTextMessage(JSON.stringify([
+					  {
+						"channel": "/meta/connect",
+						"clientId": clientId,
+						"connectionType": "websocket",
+						"advice":{"timeout":1200000,"interval":30000}
+					  }
+					]));
+					sentConnect = true;
+				 }
+			 }
+		</script>
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
@@ -15,8 +57,55 @@
 			<!-- handle marker with hiro preset -->
 			<a-marker preset="hiro">
 				<a-image src="#fall"  width="1" height="1" position="0.5 0.5 0"></a-image>
+				<a-text id="texte" value="Pef"></a-text>
 			</a-marker>
 			<a-entity camera></a-entity>
 		</a-scene>
+		<script>
+			var sentHandshake = false;
+			var sentSubscription = false;
+			var sentConnect = false;
+			var clientId = '';
+
+			var host = "wss://pefgfi.cumulocity.com/cep/realtime";
+			try {
+				socket = new WebSocket(host);
+
+				socket.onopen = function (openEvent) {
+					document.getElementById("serverStatus").innerHTML = 
+						'WebSocket Status:: Socket Open';
+					connectWS();
+				};
+
+				socket.onmessage = function (messageEvent) {
+					if (messageEvent.data instanceof Blob) {
+						//
+					} else {
+						var data = JSON.parse(messageEvent.data)[0];
+						if(!sentSubscription && data.successful) {
+							clientId = data.clientId;
+							connectWS();
+						} else if(!sentConnect && data.successful) {
+							connectWS();
+						} else {
+							// read data
+							var type = data.data.data.com_fido_naming_capability_Luminosity.L.value;
+							//alert("measure : "+type);
+							document.getElementById('texte').innerHTML = type;
+						}
+					}
+				 };
+
+				socket.onerror = function (errorEvent) {
+					document.getElementById("serverStatus").innerHTML = 
+					'WebSocket Status:: Error was reported';
+				};
+
+				socket.onclose = function (closeEvent) {
+					document.getElementById("serverStatus").innerHTML = 
+					'WebSocket Status:: Socket Closed';
+				};
+			} catch (exception) { if (window.console) console.log(exception); }
+		</script>
 	</body>
 </html>
