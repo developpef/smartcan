@@ -12,3 +12,18 @@ Doc C8Y : https://www.cumulocity.com/guides/web/introduction/
 8. Revenir dans le répertoire racine (du clone)
 9. Lancer la commande c8y build:plugin monplugin plugins\monplugin
 10. Récupérer le zip généré et l'installer dans l'appli (en supprimant tout autre plugin de branding) via l'interface C8Y
+
+
+# smartcan AR
+
+- Pour tester :
+1. Imprimer le tag Hiro
+2. Aller sur l'URL : https://smartcan-ar.herokuapp.com/pef
+
+- Appli hébergée sur : https://dashboard.heroku.com/apps/smartcan-ar/ (obligatoire sinon la lib JS ne fonctionne pas)
+- Lib JS : https://github.com/jeromeetienne/AR.js/blob/master/README.md + https://aframe.io/docs/0.8.0/introduction/
+
+- Pour déployer :
+1. git add .
+2. git commit -m ''
+3. git subtree push --prefix=AR/ heroku master
