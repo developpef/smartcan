@@ -12,14 +12,6 @@
 
 				socket.send(text);
 			 }
-
-			 function sendBinaryMessage() {
-				if (socket.readyState != WebSocket.OPEN) return;
-
-				var sourceCanvas = document.getElementById('source');
-
-				socket.send(sourceCanvas.msToBlob());
-			 }    
 			 
 			 function connectWS() {
 				 if(!sentHandshake) {
@@ -72,8 +64,7 @@
 				socket = new WebSocket(host);
 
 				socket.onopen = function (openEvent) {
-					document.getElementById("serverStatus").innerHTML = 
-						'WebSocket Status:: Socket Open';
+					alert('start');
 					connectWS();
 				};
 
@@ -97,13 +88,13 @@
 				 };
 
 				socket.onerror = function (errorEvent) {
-					document.getElementById("serverStatus").innerHTML = 
-					'WebSocket Status:: Error was reported';
+					alert(
+					'WebSocket Status:: Error was reported');
 				};
 
 				socket.onclose = function (closeEvent) {
-					document.getElementById("serverStatus").innerHTML = 
-					'WebSocket Status:: Socket Closed';
+					alert(
+					'WebSocket Status:: Socket Closed');
 				};
 			} catch (exception) { if (window.console) console.log(exception); }
 		</script>
