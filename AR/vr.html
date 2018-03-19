@@ -49,7 +49,8 @@
 			<!-- handle marker with hiro preset -->
 			<a-marker preset="hiro">
 				<a-image src="#fall"  width="1" height="1" position="0.8 0.8 0"></a-image>
-				<a-text test-counter id="texte" value="Pef" position="0.8 0.8 0" anchor="left"></a-text>
+				<a-text test-counter id="texte" value="Pef" position="0.6 0.8 0" anchor="left"></a-text>
+				<a-text id="unit" value="lux" position="0.8 0.6 0" anchor="left"></a-text>
 			</a-marker>
 			<a-entity camera></a-entity>
 		</a-scene>
@@ -80,7 +81,7 @@
 						} else {
 							// read data
 							var type = data.data.data.com_fido_naming_capability_Luminosity.L.value;
-							document.querySelector('a-scene').querySelector('#texte').setAttribute('value', type+' lux');
+							document.querySelector('a-scene').querySelector('#texte').setAttribute('value', type);
 						}
 					}
 				 };
