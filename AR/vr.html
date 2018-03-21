@@ -8,7 +8,8 @@
 			AFRAME.registerComponent('cursor-listener', {
 			  init: function () {
 				this.el.addEventListener('click', function (evt) {
-				  $( "#dialog-message" ).dialog('open');
+				  document.querySelector( "#dialog-message" ).style.display = 'block';
+				  document.querySelector( "#dialog-message" ).style.visibility = 'visible';
 				});
 			  }
 			});
@@ -58,6 +59,7 @@
 			 
 			 $( function() {
 				$( "#dialog-message" ).dialog({
+				autoOpen: false,
 				  modal: true,
 				  buttons: {
 					Ok: function() {
@@ -73,7 +75,7 @@
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
-		<div id="dialog-message" style="display:none" title="Report event">
+		<div id="dialog-message" title="Report event">
 			<p>
 			Comment :
 			</p>
@@ -104,7 +106,7 @@
 					   to="0 360 0"
 					   repeat="indefinite"></a-animation>
 					<a-animation begin="click" attribute="position" to="-1 2 0"
-						easing="linear" dur="100" fill="backwards" repeat="10"></a-animation>
+						easing="linear" dur="50" fill="backwards" repeat="10"></a-animation>
 				</a-entity>
 			</a-marker>
 			<a-camera><a-cursor></a-cursor></a-camera>
