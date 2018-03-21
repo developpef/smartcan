@@ -7,7 +7,6 @@
 		<script>
 			AFRAME.registerComponent('cursor-listener', {
 			  init: function () {
-				  alert('init');
 				this.el.addEventListener('click', function (evt) {
 				  alert('I was clicked');
 				});
@@ -62,12 +61,12 @@
 			<!--<a-marker preset="hiro">-->
 			<a-marker preset="custom" type='pattern' url='data/can-marker.patt'>
 				<!--<a-image id="levelIndicator" src="#empty"  width="3" height="2" position="-2 2 0"></a-image>-->
-				<a-text value="Fill level" position="0 2.6 0" width="10" anchor="left" color="#00BFFF"></a-text>
+				<a-text value="Fill level" position="0 2.6 0" width="10" anchor="left" color="#00BFFF" cursor-listener></a-text>
 				<a-text test-counter font="exo2bold" id="fillLevel" value="0 %" position="0 2.1 0" width="15" anchor="left" color="#00BFFF"></a-text>
 				<a-image src="#recycle"  width="1" height="1" position="-1.5 -2 0"></a-image>
 				<a-text value="Next interv." position="-0.9 -1.6 0" width="10" anchor="left" color="#00BFFF"></a-text>
 				<a-text id="date" font="exo2bold" value="01/01/2018" position="-0.9 -2.4 0" width="20" anchor="left" color="#00BFFF"></a-text>
-				<a-entity position="-1.5 2 0" cursor-listener>
+				<a-entity position="-1.5 2 0">
 					<a-entity id="threeDcan" gltf-model="url(obj/trash.gltf);" position="0 0 0"></a-entity>
 					<a-animation attribute="rotation"
 					   dur="4000"
