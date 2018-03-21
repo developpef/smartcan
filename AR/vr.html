@@ -8,8 +8,7 @@
 			AFRAME.registerComponent('cursor-listener', {
 			  init: function () {
 				this.el.addEventListener('click', function (evt) {
-				  document.querySelector( "#dialog-message" ).style.display = 'block';
-				  document.querySelector( "#dialog-message" ).style.visibility = 'visible';
+				  // alert('click');
 				});
 			  }
 			});
@@ -25,9 +24,7 @@
 			});
 			
 			 function sendTextMessage(text) {
-
 				if (socket.readyState != WebSocket.OPEN) return;
-
 				socket.send(text);
 			 }
 			 
@@ -56,31 +53,10 @@
 					sentConnect = true;
 				 }
 			 }
-			 
-			 $( function() {
-				$( "#dialog-message" ).dialog({
-				autoOpen: false,
-				  modal: true,
-				  buttons: {
-					Ok: function() {
-					  $( this ).dialog( "close" );
-					}
-				  }
-				});
-			  } );
 		</script>
-		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-		<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
-		<div id="dialog-message" title="Report event">
-			<p>
-			Comment :
-			</p>
-			<input type="text" />
-		</div>
 		<a-scene arjs="debugUIEnabled: false;" raycaster-autorefresh>
 			<a-assets>
 				<img id="full" src="img/full.png"/>
