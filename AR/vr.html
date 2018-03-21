@@ -12,6 +12,7 @@
 				});
 			  }
 			});
+			// https://stackoverflow.com/questions/47032056/gltf-cursor-listener-click-event-in-a-frame
 			AFRAME.registerComponent('raycaster-autorefresh', {
 			  init: function () {
 				var el = this.el;
@@ -85,7 +86,7 @@
 					
 				</a-entity>
 			</a-marker>
-			<a-entity camera><a-cursor></a-cursor></a-entity>
+			<a-camera look-controls><a-cursor></a-cursor></a-camera>
 			<a-entity light="type: ambient; color: #FFF; intensity: 5;"></a-entity>
 		</a-scene>
 		<script>
