@@ -58,15 +58,15 @@
 				<a-text value="Next interv." position="-0.9 -1.6 0" width="10" anchor="left" color="#00BFFF"></a-text>
 				<a-text id="date" font="exo2bold" value="01/01/2018" position="-0.9 -2.4 0" width="20" anchor="left" color="#00BFFF"></a-text>
 				<a-entity position="-2 2 0">
-					<a-entity gltf-model="url(obj/trash.gltf);" position="0 0 0"></a-entity>
+					<a-entity id="3Dcan" gltf-model="url(obj/trash.gltf);" position="0 0 0"></a-entity>
 					<a-animation attribute="rotation"
 					   dur="4000"
 					   fill="forwards"
 					   to="0 360 0"
 					   repeat="indefinite"></a-animation>
+					<a-entity light="type: directional; color: #CCC; intensity: 2; target: #3Dcan"></a-entity>
 				</a-entity>
 			</a-marker>
-			<a-entity light="type: ambient; color: #CCC; intensity: 2"></a-entity>
 			<a-entity camera></a-entity>
 		</a-scene>
 		<script>
