@@ -42,7 +42,7 @@
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
-		<a-scene embedded arjs>
+		<a-scene arjs="debugUIEnabled: false;">
 			<a-assets>
 				<img id="full" src="img/full.png"/>
 				<img id="empty" src="img/empty.png"/>
@@ -56,8 +56,8 @@
 				<a-image id="levelIndicator" src="#empty"  width="1" height="1" position="-1 1.5 0"></a-image>
 				<a-text test-counter font="exo2bold" id="fillLevel" value="0 %" position="-0.5 1.6 0" width="10" anchor="left" color="#00BFFF"></a-text>
 				<a-image src="#recycle"  width="1" height="1" position="-1.5 -2 0"></a-image>
-				<a-text value="Next interv." position="-1 -1.6 0" width="4" anchor="left" color="#00BFFF"></a-text>
-				<a-text id="date" font="exo2bold" value="01/01/2018" position="-1 -1.9 0" width="10" anchor="left" color="#00BFFF"></a-text>
+				<a-text value="Next interv." position="-1 -1.6 0" width="7" anchor="left" color="#00BFFF"></a-text>
+				<a-text id="date" font="exo2bold" value="01/01/2018" position="-1 -1.9 0" width="14" anchor="left" color="#00BFFF"></a-text>
 			</a-marker>
 			<a-entity camera></a-entity>
 		</a-scene>
