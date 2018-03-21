@@ -8,7 +8,7 @@
 			AFRAME.registerComponent('cursor-listener', {
 			  init: function () {
 				this.el.addEventListener('click', function (evt) {
-				  document.querySelector('#form').style.display = 'block';
+				  $( "#dialog-message" ).dialog('open');
 				});
 			  }
 			});
@@ -73,7 +73,7 @@
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
-		<div id="dialog-message" title="Report event">
+		<div id="dialog-message" style="display:none" title="Report event">
 			<p>
 			Comment :
 			</p>
@@ -103,7 +103,7 @@
 					   fill="forwards"
 					   to="0 360 0"
 					   repeat="indefinite"></a-animation>
-					<a-animation begin="click" attribute="position" to="0.2 0 0"
+					<a-animation begin="click" attribute="position" to="-1 2 0"
 						easing="linear" dur="100" fill="backwards" repeat="10"></a-animation>
 				</a-entity>
 			</a-marker>
