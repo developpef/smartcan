@@ -5,6 +5,15 @@
 		<script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
 		<script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
 		<script>
+			AFRAME.registerComponent('cursor-listener', {
+			  init: function () {
+				  alert('init');
+				this.el.addEventListener('click', function (evt) {
+				  alert('I was clicked');
+				});
+			  }
+			});
+			
 			 function sendTextMessage(text) {
 
 				if (socket.readyState != WebSocket.OPEN) return;
@@ -53,6 +62,7 @@
 			<!--<a-marker preset="hiro">-->
 			<a-marker preset="custom" type='pattern' url='data/can-marker.patt'>
 				<!--<a-image id="levelIndicator" src="#empty"  width="3" height="2" position="-2 2 0"></a-image>-->
+				<a-text value="Fill level" position="0 2.6 0" width="10" anchor="left" color="#00BFFF"></a-text>
 				<a-text test-counter font="exo2bold" id="fillLevel" value="0 %" position="0 2.1 0" width="15" anchor="left" color="#00BFFF"></a-text>
 				<a-image src="#recycle"  width="1" height="1" position="-1.5 -2 0"></a-image>
 				<a-text value="Next interv." position="-0.9 -1.6 0" width="10" anchor="left" color="#00BFFF"></a-text>
@@ -71,15 +81,6 @@
 			<a-entity light="type: ambient; color: #FFF; intensity: 5;"></a-entity>
 		</a-scene>
 		<script>
-			AFRAME.registerComponent('cursor-listener', {
-			  init: function () {
-				this.el.addEventListener('click', function (evt) {
-				  alert('I was clicked');
-				});
-			  }
-			});
-		
-		
 			var sentHandshake = false;
 			var sentSubscription = false;
 			var sentConnect = false;
