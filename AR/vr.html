@@ -8,7 +8,7 @@
 			AFRAME.registerComponent('cursor-listener', {
 			  init: function () {
 				this.el.addEventListener('click', function (evt) {
-				  alert('I was clicked');
+				  document.querySelector('#form').style.display = 'block';
 				});
 			  }
 			});
@@ -55,10 +55,30 @@
 					sentConnect = true;
 				 }
 			 }
+			 
+			 $( function() {
+				$( "#dialog-message" ).dialog({
+				  modal: true,
+				  buttons: {
+					Ok: function() {
+					  $( this ).dialog( "close" );
+					}
+				  }
+				});
+			  } );
 		</script>
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+		<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
+		<div id="dialog-message" title="Report event">
+			<p>
+			Comment :
+			</p>
+			<input type="text" />
+		</div>
 		<a-scene arjs="debugUIEnabled: false;" raycaster-autorefresh>
 			<a-assets>
 				<img id="full" src="img/full.png"/>
@@ -83,10 +103,11 @@
 					   fill="forwards"
 					   to="0 360 0"
 					   repeat="indefinite"></a-animation>
-					
+					<a-animation begin="click" attribute="position" to="0.2 0 0"
+						easing="linear" dur="100" fill="backwards" repeat="10"></a-animation>
 				</a-entity>
 			</a-marker>
-			<a-camera look-controls><a-cursor></a-cursor></a-camera>
+			<a-camera><a-cursor></a-cursor></a-camera>
 			<a-entity light="type: ambient; color: #FFF; intensity: 5;"></a-entity>
 		</a-scene>
 		<script>
