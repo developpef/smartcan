@@ -22,7 +22,7 @@
 					  {
 						"channel": "/meta/subscribe",
 						"clientId": clientId,
-						"subscription": "/measurements/*"
+						"subscription": "/measurements/34936"  //34936 = id C8Y poubelle intelligente
 					  }
 					]));
 					sentSubscription = true;
@@ -44,14 +44,16 @@
 	<body style='margin : 0px; overflow: hidden;'>
 		<a-scene embedded arjs>
 			<a-assets>
-				<img id="fall" src="img/circle.png"/>
+				<img id="full" src="img/full.png"/>
+				<img id="empty" src="img/empty.png"/>
+				<img id="medium" src="img/medium.png"/>
+				<img id="low" src="img/low.png"/>
 			</a-assets>
 			<!-- handle marker with hiro preset -->
 			<!--<a-marker preset="hiro">-->
 			<a-marker preset="custom" type='pattern' url='data/can-marker.patt'>
-				<a-image src="#fall"  width="1" height="1" position="0.8 0.8 0"></a-image>
-				<a-text test-counter id="texte" value="0" position="0.6 0.9 0" anchor="left"></a-text>
-				<a-text id="unit" value="lux" position="0.7 0.6 0" anchor="left" width="3"></a-text>
+				<a-image id="levelIndicator" src="#empty"  width="1" height="1" position="0.8 0.8 0"></a-image>
+				<a-text test-counter id="fillLevel" value="0" position="1 0.8 0" anchor="left"></a-text>
 			</a-marker>
 			<a-entity camera></a-entity>
 		</a-scene>
@@ -81,8 +83,19 @@
 							connectWS();
 						} else {
 							// read data
-							var type = data.data.data.com_fido_naming_capability_Luminosity.L.value;
-							document.querySelector('a-scene').querySelector('#texte').setAttribute('value', type);
+							var measurement = data.data.data.pef_SmartCanMeasurement;
+							//
+							var remplissage = measurement.remplissage.value;
+							document.querySelector('a-scene').querySelector('#fillLevel').setAttribute('value', remplissage + ' %');
+							if(remplissage > 5 && remplissage < 15) {
+								document.querySelector('a-scene').querySelector('#levelIndicator').setAttribute('src', '#empty');
+							} else if(remplissage > 15 && remplissage < 45) {
+								document.querySelector('a-scene').querySelector('#levelIndicator').setAttribute('src', '#low');
+							} else if(remplissage > 45 && remplissage < 75) {
+								document.querySelector('a-scene').querySelector('#levelIndicator').setAttribute('src', '#medium');
+							} else if(remplissage > 75) {
+								document.querySelector('a-scene').querySelector('#levelIndicator').setAttribute('src', '#full');
+							}
 						}
 					}
 				 };
