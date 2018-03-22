@@ -57,7 +57,7 @@
 	</head>
 
 	<body style='margin : 0px; overflow: hidden;'>
-		<a-scene arjs="debugUIEnabled: false;" raycaster-autorefresh>
+		<a-scene arjs="debugUIEnabled: false;">
 			<a-assets>
 				<img id="full" src="img/full.png"/>
 				<img id="empty" src="img/empty.png"/>
@@ -85,7 +85,9 @@
 						easing="linear" dur="50" fill="backwards" repeat="10"></a-animation>
 				</a-entity>
 			</a-marker>
-			<a-camera><a-cursor></a-cursor></a-camera>
+			<a-camera>
+				<!--<a-cursor></a-cursor>-->
+			</a-camera>
 			<a-entity light="type: ambient; color: #FFF; intensity: 5;"></a-entity>
 		</a-scene>
 		<script>
