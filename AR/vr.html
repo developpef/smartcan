@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>ARjs with Urban Power model</title>
+		<title>ARjs SmartCan by GFI</title>
 		<script src="https://aframe.io/releases/0.8.0/aframe.min.js"></script>
 		<script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
 		<script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
@@ -37,7 +37,7 @@
 					  {
 						"channel": "/meta/subscribe",
 						"clientId": clientId,
-						"subscription": "/measurements/59532"  //59532 = id C8Y poubelle intelligente
+						"subscription": "/measurements/62488"  //62488 = id C8Y poubelle intelligente
 					  }
 					]));
 					sentSubscription = true;
@@ -91,27 +91,6 @@
 			<a-entity light="type: ambient; color: #FFF; intensity: 5;"></a-entity>
 		</a-scene>
 		<script>
-			// init data
-			var xmlHttp = new XMLHttpRequest();
-			xmlHttp.onreadystatechange = function() { 
-				if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-					var jsonresp = JSON.parse(xmlHttp.responseText);
-					var measurement = jsonresp.measurements[0].pef_SmartCanMeasurement;
-					var remplissage = measurement.remplissage.value;
-					document.querySelector('a-scene').querySelector('#fillLevel').setAttribute('value', remplissage + ' %');
-					//
-					var daysCount = getDaysCount(remplissage);
-					if(daysCount==0) {
-						document.querySelector('a-scene').querySelector('#date').setAttribute('value', 'today');
-					} else {
-						document.querySelector('a-scene').querySelector('#date').setAttribute('value', getDate(daysCount));
-					}
-				}
-			}
-			xmlHttp.open("GET", "https://pefgfi.cumulocity.com/measurement/measurements?source=59532&fromDate=2018-01-01&pageSize=1&dateTo=2020-01-01&revert=true", true); // true for asynchronous 
-			xmlHttp.send(null);
-	
-	
 			var sentHandshake = false;
 			var sentSubscription = false;
 			var sentConnect = false;
@@ -187,6 +166,28 @@
 				var year = date.getFullYear();
 				return day + ' ' + monthNames[monthIndex] + ' ' + year;
 			}
+			
+			(function(){
+				// init data
+				var xmlHttp = new XMLHttpRequest();
+				xmlHttp.onreadystatechange = function() { 
+					if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+						var jsonresp = JSON.parse(xmlHttp.responseText);
+						var measurement = jsonresp.measurements[0].pef_SmartCanMeasurement;
+						var remplissage = measurement.remplissage.value;
+						document.querySelector('a-scene').querySelector('#fillLevel').setAttribute('value', remplissage + ' %');
+						//
+						var daysCount = getDaysCount(remplissage);
+						if(daysCount==0) {
+							document.querySelector('a-scene').querySelector('#date').setAttribute('value', 'today');
+						} else {
+							document.querySelector('a-scene').querySelector('#date').setAttribute('value', getDate(daysCount));
+						}
+					}
+				}
+				xmlHttp.open("GET", "https://pefgfi.cumulocity.com/measurement/measurements?source=62488&fromDate=2018-01-01&pageSize=1&dateTo=2020-01-01&revert=true", true); // true for asynchronous 
+				xmlHttp.send(null);
+			})();
 		</script>
 	</body>
 </html>
