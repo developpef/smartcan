@@ -186,6 +186,7 @@
 					}
 				}
 				xmlHttp.open("GET", "https://pefgfi.cumulocity.com/measurement/measurements?source=62488&fromDate=2018-01-01&pageSize=1&dateTo=2020-01-01&revert=true", true); // true for asynchronous 
+				xmlHttp.setRequestHeader("Authorization", "Basic " + btoa("demo:demodemo"));
 				xmlHttp.send(null);
 			})();
 		</script>
