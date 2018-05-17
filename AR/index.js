@@ -18,4 +18,8 @@ app.get('/pef', function (req, res) {
   res.sendFile(path.join(__dirname + '/vr.html'));
 });
 
+app.get('/work', function (req, res) {
+  res.sendFile(path.join(__dirname + '/vr-work.html'));
+});
+
 app.listen(process.env.PORT || 8080);
